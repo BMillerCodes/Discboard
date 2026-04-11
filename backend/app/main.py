@@ -3,7 +3,6 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sse_starlette.sse import EventSourceResponse
 
 from app.config import settings
 from app.database import create_db_and_tables
@@ -14,6 +13,8 @@ from app.api import (
     token_usage_router,
     health_router,
     github_router,
+    config_router,
+    events_router,
 )
 
 @asynccontextmanager
@@ -66,6 +67,8 @@ app.include_router(services_router)
 app.include_router(bookmarks_router)
 app.include_router(token_usage_router)
 app.include_router(github_router)
+app.include_router(config_router)
+app.include_router(events_router)
 
 
 @app.get("/")
@@ -76,18 +79,6 @@ def root():
         "description": "Mission Control for Discord",
         "docs": "/docs",
     }
-
-
-@app.get("/api/events/sessions")
-async def session_events():
-    """SSE endpoint for real-time session updates."""
-    async def event_generator():
-        import time
-        while True:
-            yield {"event": "ping", "data": {"time": time.time()}}
-            await asyncio.sleep(30)
-    
-    return EventSourceResponse(event_generator())
 
 
 if __name__ == "__main__":

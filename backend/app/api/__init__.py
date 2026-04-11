@@ -5,7 +5,8 @@ from app.api.bookmarks import router as bookmarks_router
 from app.api.token_usage import router as token_usage_router
 from app.api.health import router as health_router
 from app.api.github import router as github_router
-from app.api.events import sse_events_stream
+from app.api.events import router as events_router
+from app.api.config import router as config_router
 
 __all__ = [
     "sessions_router",
@@ -14,5 +15,6 @@ __all__ = [
     "token_usage_router",
     "health_router",
     "github_router",
-    "sse_events_stream",
+    "events_router",
+    "config_router",
 ]

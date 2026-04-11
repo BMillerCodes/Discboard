@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from datetime import datetime
 from app.database import get_session
 from app.models import Session, SessionCreate, SessionUpdate
+from app.api.events import event_bus, EVENT_SESSION_CREATED, EVENT_SESSION_UPDATED, EVENT_SESSION_DELETED
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
@@ -19,7 +20,7 @@ def list_sessions(
     return session.exec(query).all()
 
 @router.post("", response_model=Session)
-def create_session(
+async def create_session(
     data: SessionCreate,
     session: Session = Depends(get_session)
 ):
@@ -32,6 +33,13 @@ def create_session(
     session.add(session_obj)
     session.commit()
     session.refresh(session_obj)
+
+    # Broadcast session created event
+    await event_bus.broadcast(
+        EVENT_SESSION_CREATED,
+        {"session": session_obj.model_dump(mode="json")}
+    )
+
     return session_obj
 
 @router.get("/{session_id}", response_model=Session)
@@ -45,7 +53,7 @@ def get_session_by_id(
     return s
 
 @router.patch("/{session_id}", response_model=Session)
-def update_session(
+async def update_session(
     session_id: str,
     data: SessionUpdate,
     session: Session = Depends(get_session)
@@ -59,18 +67,36 @@ def update_session(
     session.add(s)
     session.commit()
     session.refresh(s)
+
+    # Broadcast session updated event
+    await event_bus.broadcast(
+        EVENT_SESSION_UPDATED,
+        {"session": s.model_dump(mode="json")}
+    )
+
     return s
 
 @router.delete("/{session_id}")
-def delete_session(
+async def delete_session(
     session_id: str,
     session: Session = Depends(get_session)
 ):
     s = session.get(Session, session_id)
     if not s:
         raise HTTPException(status_code=404, detail="Session not found")
+
+    # Store session data for broadcast before deletion
+    session_data = s.model_dump(mode="json")
+
     session.delete(s)
     session.commit()
+
+    # Broadcast session deleted event
+    await event_bus.broadcast(
+        EVENT_SESSION_DELETED,
+        {"session": session_data}
+    )
+
     return {"ok": True}
 
 @router.post("/{session_id}/activity")

@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from typing import Optional
 from app.database import get_session
 from app.models import Bookmark, BookmarkCreate, BookmarkUpdate
+from app.api.events import event_bus, EVENT_BOOKMARK_CREATED, EVENT_BOOKMARK_UPDATED, EVENT_BOOKMARK_DELETED
 
 router = APIRouter(prefix="/api/bookmarks", tags=["bookmarks"])
 
@@ -26,7 +27,7 @@ def list_bookmarks(
     return session.exec(query).all()
 
 @router.post("", response_model=Bookmark)
-def create_bookmark(
+async def create_bookmark(
     data: BookmarkCreate,
     session: Session = Depends(get_session)
 ):
@@ -39,6 +40,13 @@ def create_bookmark(
     session.add(bookmark)
     session.commit()
     session.refresh(bookmark)
+
+    # Broadcast bookmark created event
+    await event_bus.broadcast(
+        EVENT_BOOKMARK_CREATED,
+        {"bookmark": bookmark.model_dump(mode="json")}
+    )
+
     return bookmark
 
 @router.get("/{bookmark_id}", response_model=Bookmark)
@@ -52,7 +60,7 @@ def get_bookmark(
     return b
 
 @router.patch("/{bookmark_id}", response_model=Bookmark)
-def update_bookmark(
+async def update_bookmark(
     bookmark_id: str,
     data: BookmarkUpdate,
     session: Session = Depends(get_session)
@@ -65,16 +73,34 @@ def update_bookmark(
     session.add(b)
     session.commit()
     session.refresh(b)
+
+    # Broadcast bookmark updated event
+    await event_bus.broadcast(
+        EVENT_BOOKMARK_UPDATED,
+        {"bookmark": b.model_dump(mode="json")}
+    )
+
     return b
 
 @router.delete("/{bookmark_id}")
-def delete_bookmark(
+async def delete_bookmark(
     bookmark_id: str,
     session: Session = Depends(get_session)
 ):
     b = session.get(Bookmark, bookmark_id)
     if not b:
         raise HTTPException(status_code=404, detail="Bookmark not found")
+
+    # Store bookmark data for broadcast before deletion
+    bookmark_data = b.model_dump(mode="json")
+
     session.delete(b)
     session.commit()
+
+    # Broadcast bookmark deleted event
+    await event_bus.broadcast(
+        EVENT_BOOKMARK_DELETED,
+        {"bookmark": bookmark_data}
+    )
+
     return {"ok": True}

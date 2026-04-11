@@ -3,6 +3,7 @@ from sqlmodel import Session, select, func
 from datetime import datetime, timedelta
 from app.database import get_session
 from app.models import TokenUsage, TokenUsageCreate
+from app.api.events import event_bus, EVENT_TOKEN_USAGE_RECORDED
 
 router = APIRouter(prefix="/api/token-usage", tags=["token_usage"])
 
@@ -25,7 +26,7 @@ def list_usage(
     return db.exec(query).all()
 
 @router.post("", response_model=TokenUsage)
-def record_usage(
+async def record_usage(
     data: TokenUsageCreate,
     db: Session = Depends(get_session)
 ):
@@ -33,6 +34,13 @@ def record_usage(
     db.add(usage)
     db.commit()
     db.refresh(usage)
+
+    # Broadcast token usage recorded event
+    await event_bus.broadcast(
+        EVENT_TOKEN_USAGE_RECORDED,
+        {"token_usage": usage.model_dump(mode="json")}
+    )
+
     return usage
 
 @router.get("/summary")
