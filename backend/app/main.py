@@ -13,6 +13,7 @@ from app.api import (
     bookmarks_router,
     token_usage_router,
     health_router,
+    github_router,
 )
 
 @asynccontextmanager
@@ -29,6 +30,14 @@ async def lifespan(app: FastAPI):
             asyncio.create_task(bot.start())
         except Exception as e:
             print(f"Discord bot not started: {e}")
+    
+    # Start Uptime Kuma sync service
+    if settings.UPTIME_KUMA_API_KEY:
+        try:
+            from app.services.sync import start_sync_service
+            await start_sync_service()
+        except Exception as e:
+            print(f"Sync service not started: {e}")
     
     yield
     # Shutdown
@@ -56,6 +65,7 @@ app.include_router(sessions_router)
 app.include_router(services_router)
 app.include_router(bookmarks_router)
 app.include_router(token_usage_router)
+app.include_router(github_router)
 
 
 @app.get("/")
