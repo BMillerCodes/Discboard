@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from sqlmodel import SQLModel, Field
 from enum import Enum
+from sqlalchemy import JSON
 
 class SessionStatus(str, Enum):
     ACTIVE = "active"
@@ -21,11 +22,10 @@ class Session(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_activity: datetime = Field(default_factory=datetime.utcnow)
     message_count: int = Field(default=0)
-    metadata: dict = Field(default_factory=dict)
+    extra_data: dict[str, Any] = Field(default_factory=dict, sa_type=JSON)
     
     class Config:
         arbitrary_types_allowed = True
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 class SessionCreate(SQLModel):
     discord_channel_id: str
@@ -39,4 +39,4 @@ class SessionUpdate(SQLModel):
     model: Optional[str] = None
     last_activity: Optional[datetime] = None
     message_count: Optional[int] = None
-    metadata: Optional[dict] = None
+    extra_data: Optional[dict] = None

@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from sqlmodel import SQLModel, Field
+from sqlalchemy import JSON
 
 class TokenUsage(SQLModel, table=True):
     __tablename__ = "token_usage"
@@ -13,11 +14,10 @@ class TokenUsage(SQLModel, table=True):
     output_tokens: int = 0
     total_cost: float = 0.0
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    metadata: dict = Field(default_factory=dict)
+    extra_data: dict[str, Any] = Field(default_factory=dict, sa_type=JSON)
     
     class Config:
         arbitrary_types_allowed = True
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 class TokenUsageCreate(SQLModel):
     session_id: Optional[str] = None

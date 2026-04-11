@@ -28,12 +28,14 @@ A unified Mission Control platform for Discord that bridges chat sessions, docum
 - Unified search (vault + GitHub + history)
 - Model switching UI with cost estimator
 - Bookmark manager with tags
+- GitHub PR/issue widgets
 
 ### Tier 3 — Full Mission Control
-- Command palette (Ctrl+K)
-- Role-based views (admin/user)
-- Automation rules (GitHub PR → Discord embed → action)
-- Token budget alerts
+- **Command palette (Ctrl+K)** — Quick search across sessions, bookmarks, services, and GitHub repos
+- **Role-based views (admin/user)**
+- **Automation rules** — GitHub PR → Discord embed → action workflow automation
+- **Token budget alerts** — Track and limit AI spending
+- **Webhook management UI** — Configure GitHub and Discord webhooks
 
 ---
 
@@ -44,6 +46,7 @@ A unified Mission Control platform for Discord that bridges chat sessions, docum
 │                        DISCORD                              │
 │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
 │   │ Slash Cmds  │  │   Modal     │  │  Embeds     │       │
+│   │ /sessions   │  │   Forms     │  │  Status    │       │
 │   └──────┬──────┘  └──────┬──────┘  └──────┬──────┘       │
 └──────────┼────────────────┼─────────────────┼───────────────┘
            ▼                ▼                 ▼
@@ -61,7 +64,7 @@ A unified Mission Control platform for Discord that bridges chat sessions, docum
                     ▼                   ▼
          ┌──────────────────┐  ┌──────────────────┐
          │   REST API       │  │   SSE Stream     │
-         │   (FastAPI)      │  │   (WebSocket)    │
+         │   (FastAPI)      │  │   (SSE)          │
          └─────────┬────────┘  └─────────┬────────┘
                    │                      │
                    ▼                      ▼
@@ -136,6 +139,9 @@ Discboard/
 ├── SPEC.md                    # Full specification
 ├── README.md                  # This file
 ├── docker-compose.yml         # Docker orchestration
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── Dockerfile.bot
 ├── backend/
 │   ├── pyproject.toml
 │   └── app/
@@ -145,11 +151,16 @@ Discboard/
 │       ├── models/           # SQLModel models
 │       ├── api/              # REST endpoints
 │       ├── discord/          # Bot commands
-│       └── services/         # Uptime Kuma, GitHub clients
+│       ├── services/         # Uptime Kuma, GitHub clients
+│       ├── automation/       # Automation rules engine
+│       └── tests/            # Unit tests
 └── frontend/
     ├── package.json
     └── app/
         ├── page.tsx         # Dashboard
+        ├── automation/       # Automation rules UI
+        ├── webhooks/         # Webhook management UI
+        ├── command-palette.tsx  # Ctrl+K command palette
         └── lib/             # API client, types
 ```
 
@@ -160,16 +171,31 @@ Discboard/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/health` | Health check |
+| GET | `/api/health/ready` | Readiness check |
 | GET | `/api/sessions` | List sessions |
 | POST | `/api/sessions` | Create session |
+| GET | `/api/sessions/{id}` | Get session by ID |
 | PATCH | `/api/sessions/{id}` | Update session |
 | DELETE | `/api/sessions/{id}` | Delete session |
+| POST | `/api/sessions/{id}/activity` | Record activity |
 | GET | `/api/services` | List services |
 | POST | `/api/services` | Add service |
 | POST | `/api/services/{id}/check` | Health check |
 | GET | `/api/bookmarks` | List bookmarks |
 | POST | `/api/bookmarks` | Create bookmark |
+| PATCH | `/api/bookmarks/{id}` | Update bookmark |
+| DELETE | `/api/bookmarks/{id}` | Delete bookmark |
 | GET | `/api/token-usage/summary` | Usage summary |
+| GET | `/api/automation/rules` | List automation rules |
+| POST | `/api/automation/rules` | Create automation rule |
+| POST | `/api/automation/rules/{id}/toggle` | Toggle rule |
+| POST | `/api/automation/rules/{id}/test` | Test rule |
+| DELETE | `/api/automation/rules/{id}` | Delete rule |
+| POST | `/api/webhooks/github` | GitHub webhook receiver |
+| GET | `/api/webhooks/github/config` | GitHub webhook config |
+| POST | `/api/webhooks/discord` | Discord webhook receiver |
+| GET | `/api/webhooks/discord/config` | Discord webhook config |
+| GET | `/api/events/stream` | SSE real-time events stream |
 
 ---
 

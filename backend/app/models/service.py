@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from sqlmodel import SQLModel, Field
 from enum import Enum
+from sqlalchemy import JSON
 
 class ServiceStatus(str, Enum):
     HEALTHY = "healthy"
@@ -31,11 +32,10 @@ class Service(SQLModel, table=True):
     last_check: datetime = Field(default_factory=datetime.utcnow)
     icon: str = Field(default="🔧")
     description: Optional[str] = None
-    metadata: dict = Field(default_factory=dict)
+    extra_data: dict[str, Any] = Field(default_factory=dict, sa_type=JSON)
     
     class Config:
         arbitrary_types_allowed = True
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 class ServiceCreate(SQLModel):
     name: str
@@ -54,4 +54,4 @@ class ServiceUpdate(SQLModel):
     last_check: Optional[datetime] = None
     icon: Optional[str] = None
     description: Optional[str] = None
-    metadata: Optional[dict] = None
+    extra_data: Optional[dict] = None

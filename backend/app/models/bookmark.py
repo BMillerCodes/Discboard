@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from sqlmodel import SQLModel, Field
+from sqlalchemy import JSON
 
 class Bookmark(SQLModel, table=True):
     __tablename__ = "bookmarks"
@@ -10,13 +11,12 @@ class Bookmark(SQLModel, table=True):
     url: str = Field(index=True)
     label: str
     description: Optional[str] = None
-    tags: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list, sa_type=JSON)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    metadata: dict = Field(default_factory=dict)
+    extra_data: dict[str, Any] = Field(default_factory=dict, sa_type=JSON)
     
     class Config:
         arbitrary_types_allowed = True
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 class BookmarkCreate(SQLModel):
     url: str
@@ -29,4 +29,4 @@ class BookmarkUpdate(SQLModel):
     label: Optional[str] = None
     description: Optional[str] = None
     tags: Optional[list[str]] = None
-    metadata: Optional[dict] = None
+    extra_data: Optional[dict] = None

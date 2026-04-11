@@ -10,8 +10,9 @@ import hmac
 import hashlib
 import json
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from sqlmodel import SQLModel, Field
+from sqlalchemy import JSON
 
 
 class AutomationRule(SQLModel, table=True):
@@ -21,15 +22,14 @@ class AutomationRule(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     name: str
     trigger_type: str  # 'github_pr', 'github_issue', 'service_down', 'token_budget', 'discord_interaction'
-    trigger_config: dict = Field(default_factory=dict)  # e.g., {"repo": "shelfmark", "event": "opened"}
+    trigger_config: dict[str, Any] = Field(default_factory=dict, sa_type=JSON)  # e.g., {"repo": "shelfmark", "event": "opened"}
     action_type: str  # 'discord_embed', 'discord_message', 'webhook'
-    action_config: dict = Field(default_factory=dict)  # e.g., {"channel_id": "123", "message": "..."}
+    action_config: dict[str, Any] = Field(default_factory=dict, sa_type=JSON)  # e.g., {"channel_id": "123", "message": "..."}
     enabled: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     class Config:
         arbitrary_types_allowed = True
-        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class AutomationRuleCreate(SQLModel):
