@@ -15,6 +15,8 @@ from app.api import (
     github_router,
     config_router,
     events_router,
+    automation_router,
+    webhooks_router,
 )
 
 @asynccontextmanager
@@ -69,6 +71,8 @@ app.include_router(token_usage_router)
 app.include_router(github_router)
 app.include_router(config_router)
 app.include_router(events_router)
+app.include_router(automation_router)
+app.include_router(webhooks_router)
 
 
 @app.get("/")

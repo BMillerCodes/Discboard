@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { apiGet, apiPost, API_BASE } from '@/lib/utils'
 import type { Session, Service, Bookmark, TokenSummary } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
@@ -256,6 +258,21 @@ export default function DashboardPage() {
           <p className="text-slate-400 mt-2">Unified dashboard for your Discord operations</p>
         </div>
         <div className="flex items-center gap-4">
+          {/* Navigation Links */}
+          <nav className="flex items-center gap-1">
+            <Link href="/" className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors">
+              Dashboard
+            </Link>
+            <Link href="/automation" className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors">
+              ⚡ Automation
+            </Link>
+            <Link href="/webhooks" className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors">
+              🔗 Webhooks
+            </Link>
+            <Link href="/settings" className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-colors">
+              ⚙️ Settings
+            </Link>
+          </nav>
           {/* SSE Status */}
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800">
             <span className={`w-2 h-2 rounded-full ${

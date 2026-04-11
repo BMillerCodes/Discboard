@@ -7,6 +7,8 @@ from app.api.health import router as health_router
 from app.api.github import router as github_router
 from app.api.events import router as events_router
 from app.api.config import router as config_router
+from app.api.automation import router as automation_router
+from app.api.webhooks import router as webhooks_router
 
 __all__ = [
     "sessions_router",
@@ -17,4 +19,6 @@ __all__ = [
     "github_router",
     "events_router",
     "config_router",
+    "automation_router",
+    "webhooks_router",
 ]
