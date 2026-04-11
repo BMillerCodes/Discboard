@@ -1,0 +1,15 @@
+# Discboard Bot Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY backend/pyproject.toml backend/requirements.txt* ./
+RUN pip install --no-cache-dir discord.py python-dotenv httpx
+
+COPY backend/app/discord/ ./app/discord/
+COPY backend/app/config.py ./app/
+COPY backend/app/models/ ./app/models/
+
+ENV PYTHONUNBUFFERED=1
+
+CMD ["python", "-m", "app.discord.bot"]
